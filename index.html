@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="logo" href="assets/logo.png">
+  <title>Snake Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="virtual-cursor"></div>
+
+  <!-- Panduan -->
+  <div id="onboardingScreen" class="popup">
+    <div class="popup-content onboarding-box">
+      <h1 class="guide-title">Panduan</h1>
+      <div id="step1" class="onboarding-step">
+        <h1>Aktifkan Kamera & Tampilkan Tangan</h1>
+        <p class="guide-text">Pastikan tangan terlihat jelas pada kamera supaya gerakan dapat terdeteksi dengan baik</p>
+        <div class="camera-status" id="cameraStatus">Mendeteksi Tangan...</div>
+      </div>
+      <div id="step2" class="onboarding-step" style="display:none;">
+        <h1>Cara Menekan Tombol</h1>
+        <p class="guide-text">Arahkan kursor hijau ke tombol di bawah dan tahan selama 1 detik untuk menekan tombol</p>
+        <button id="testButton" onclick="nextOnboardingStep(3)">Coba Tekan</button>
+      </div>
+      <div id="step3" class="onboarding-step" style="display:none;">
+        <h1>Cara Pause & Scroll</h1>
+        <p class="guide-text">
+          Lebarkan jempol dan kelingking selama 1 detik untuk menjeda permainan
+        </p>
+        <p class="guide-text">
+          Gerakkan kursor hijau ke atas atau bawah untuk menggulir halaman
+        </p>
+        <button onclick="finishOnboarding()">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Utama -->
+  <div id="startScreen" class="center-screen">
+    <div class="menu-box">
+      <h1 class="game-title">Snake</h1>
+      <button onclick="startGame()">Mulai</button>
+      <button onclick="showGuide('start')">Petunjuk</button>
+      <button onclick="showTutorial()">Panduan</button>
+      <button id="soundToggle" onclick="toggleSound()">Efek Suara (ON)</button>
+    </div>
+  </div>
+
+  <!-- Jeda -->
+  <div id="pauseScreen" class="center-screen" style="display:none;">
+    <div class="menu-box">
+      <div class="image-box">
+        <img src="assets/pause.png" class="pause-img">
+      </div>
+      <button onclick="resumeGame()">Lanjut</button>
+      <button onclick="showGuide('pause')">Petunjuk</button>
+      <button onclick="exitGame()">Keluar</button>
+    </div>
+  </div>
+
+  <!-- Petunjuk -->
+  <div id="guidePopup" class="popup" style="display:none;">
+    <div class="popup-content guide-box">
+      <h1 class="guide-title">Petunjuk</h1>
+      <div class="guide-section">
+        <h1>Kontrol Gestur</h1>
+        <p class="guide-text">
+          Gerakkan jari telunjuk di depan kamera untuk mengendalikan ular
+        </p>
+        <div class="gesture-demo">
+          <img src="assets/finger.png" class="demo-hand">
+          <div class="gesture-label" id="gestureLabel">Tengah</div>
+        </div>
+      </div>
+      <div class="guide-section">
+        <h1>Aturan Permainan</h1>
+        <div class="rule-list">
+          <div class="rule-item">
+            <img src="assets/apple.png" class="rule-icon">
+            <span>Makan apel untuk menambah skor</span>
+          </div>
+          <div class="rule-item">
+            <img src="assets/snake/head_right.png" class="rule-icon">
+            <span>Setiap apel membuat tubuh ular semakin panjang</span>
+          </div>
+          <div class="rule-item">
+            <img src="assets/speed.png" class="rule-icon">
+            <span>Kecepatan ular akan meningkat seiring bertambahnya skor</span>
+          </div>
+          <div class="rule-item">
+            <img src="assets/wall.png" class="rule-icon">
+            <span>Hindari menabrak dinding atau tubuh ular sendiri</span>
+          </div>
+          <div class="rule-item">
+            <img src="assets/heart-full.png" class="rule-icon">
+            <span>Pemain memiliki 3 nyawa</span>
+          </div>
+          <div class="rule-item">
+            <img src="assets/star.png" class="rule-icon">
+            <span>Raih skor tertinggi sebanyak mungkin</span>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeGuide()">Tutup</button>
+    </div>
+  </div>
+
+  <!-- Permainan -->
+  <div id="gameScreen" class="game-container" style="display:none;">
+    <div class="game-wrapper">
+      <div class="top-bar">
+        <div class="score-group">
+          <div class="score-box">
+            <img src="assets/apple.png" class="icon">
+            <span id="score">0</span>
+          </div>
+          <div class="score-box">
+            <img src="assets/star.png" class="icon">
+            <span id="highscore">0</span>
+          </div>
+          <div class="lives-box">
+            <img id="life1" src="assets/heart-full.png" class="icon">
+            <img id="life2" src="assets/heart-full.png" class="icon">
+            <img id="life3" src="assets/heart-full.png" class="icon">
+          </div>
+        </div>
+      </div>
+      <div class="camera-container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="output_canvas"></canvas>
+        <div class="gesture-stats">
+          <div class="stat-item">
+            <span class="stat-label">Gestur:</span>
+            <span id="current-gesture" class="stat-value"></span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Akurasi:</span>
+            <span id="current-accuracy" class="stat-value"></span>
+          </div>
+        </div>
+      </div>
+      <div id="countdown-overlay" style="display: none;">
+        <span id="countdown-text">3</span>
+      </div>
+      <canvas id="gameCanvas" width="600" height="600"></canvas>
+    </div>
+  </div>
+
+  <!-- Efek Suara -->
+  <audio id="upSound" src="sounds/up.mp3" preload="auto"></audio>
+  <audio id="downSound" src="sounds/down.mp3" preload="auto"></audio>
+  <audio id="leftSound" src="sounds/left.mp3" preload="auto"></audio>
+  <audio id="rightSound" src="sounds/right.mp3" preload="auto"></audio>
+  <audio id="eatSound" src="sounds/eat.mp3" preload="auto"></audio>
+  <audio id="hitSound" src="sounds/hit.mp3" preload="auto"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+  <script src="game.js"></script>
+  <script src="gesture.js"></script>
+</body>
+</html>
